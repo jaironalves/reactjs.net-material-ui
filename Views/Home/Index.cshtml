@@ -1,0 +1,17 @@
+@using React.AspNet
+@using React.RenderFunctions
+@using React.Router
+@model React.Sample.Webpack.CoreMvc.Controllers.HomeController.IndexViewModel
+
+@{
+    Layout = "_Layout";    
+    var materialUiFunctions = new MaterialUIFunctions();
+    var helmetFunctions = new ReactHelmetFunctions();
+
+    var chainedFunctions = new ChainedRenderFunctions(materialUiFunctions, helmetFunctions);
+}
+@Html.ReactRouter("Components.RootComponent", new { initialComments = Model.Comments, page = Model.Page }, renderFunctions: chainedFunctions)
+@{
+    ViewBag.ServerStyles = materialUiFunctions.RenderedStyles;
+    ViewBag.HelmetTitle = helmetFunctions.RenderedHelmet?.GetValueOrDefault("title");
+}

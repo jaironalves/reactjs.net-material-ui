@@ -1,0 +1,19 @@
+{
+	"presets": ["@babel/preset-react", "@babel/preset-env"],
+	"plugins": [
+		"@babel/proposal-object-rest-spread",
+		"@babel/plugin-syntax-dynamic-import",
+		"@babel/proposal-class-properties",
+		[
+			"babel-plugin-module-resolver",
+			{
+				"root": ["./ClientApp/src"],
+				"alias": {
+					"src": "./ClientApp/src",
+					"test": "./ClientApp/test",
+					"underscore": "lodash"
+				}
+			}
+		]
+	]
+}
