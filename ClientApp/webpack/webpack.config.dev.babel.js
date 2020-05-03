@@ -1,19 +1,20 @@
-import Common from './webpack.common.js'
-import Merge from 'webpack-merge'
-import Webpack from 'webpack'
-import paths from './paths'
+import Common, { factoryPlugins } from "./webpack.common.js";
+import Merge from "webpack-merge";
+import Webpack from "webpack";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import paths from "./paths";
 
 const optionsCommon = {
-  mode: 'development',
-  namePattern: '[name]',
-  styleLoaderInitial: 'style-loader',
-}
+  mode: "development",
+  namePattern: "[name]",
+  styleLoaderInitial: "style-loader",
+};
 
 export default Merge(Common(optionsCommon), {
-  devtool: 'inline-source-map',
+  devtool: "inline-source-map",
   optimization: {
     splitChunks: {
-      chunks: 'all',
+      chunks: "all",
     },
   },
   devServer: {
@@ -22,5 +23,16 @@ export default Merge(Common(optionsCommon), {
     hot: true,
     historyApiFallback: true,
   },
-  plugins: [new Webpack.HotModuleReplacementPlugin()],
-})
+  plugins: [
+    factoryPlugins.Progress(),    
+    new HtmlWebpackPlugin({
+      template: paths.templatePath,
+      templateParameters: {
+        'PUBLIC_URL': ''
+      },
+    }),    
+    factoryPlugins.Define(),    
+    factoryPlugins.Manifest(),
+    new Webpack.HotModuleReplacementPlugin(),
+  ],
+});

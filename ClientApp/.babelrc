@@ -7,10 +7,10 @@
 		[
 			"babel-plugin-module-resolver",
 			{
-				"root": ["./ClientApp/src"],
+				"root": ["./src"],
 				"alias": {
-					"src": "./ClientApp/src",
-					"test": "./ClientApp/test",
+					"src": "./src",
+					"test": "./test",
 					"underscore": "lodash"
 				}
 			}
