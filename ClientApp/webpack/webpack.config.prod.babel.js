@@ -1,54 +1,56 @@
-import Merge from "webpack-merge";
-import Common from "./webpack.common.js";
-import Path from "path";
+import Merge from 'webpack-merge'
+import Common, { factoryPlugins } from './webpack.common.js'
+import Path from 'path'
 
 // Plugins
-import { CleanWebpackPlugin } from "clean-webpack-plugin";
-import TerserJSPlugin from "terser-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import OptimizeCssAssetsPlugin from "optimize-css-assets-webpack-plugin";
-import CopyWebpackPlugin from "copy-webpack-plugin";
+import { CleanWebpackPlugin } from 'clean-webpack-plugin'
+import TerserJSPlugin from 'terser-webpack-plugin'
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
+import CopyWebpackPlugin from 'copy-webpack-plugin'
 
-import paths from "./paths";
+import paths from './paths'
 
-const namePattern = "[name]-[hash:8]";
+const namePattern = '[name]-[hash:8]'
 
 const optionsCommon = {
-  mode: "production",
+  mode: 'production',
   namePattern,
   styleLoaderInitial: MiniCssExtractPlugin.loader,
-};
+}
 
 export default Merge(Common(optionsCommon), {
-  devtool: "source-map",
+  devtool: 'source-map',
   optimization: {
     minimizer: [new TerserJSPlugin({}), new OptimizeCssAssetsPlugin({})],
     runtimeChunk: {
-      name: "runtime", // necessary when using multiple entrypoints on the same page
+      name: 'runtime', // necessary when using multiple entrypoints on the same page
     },
     splitChunks: {
       cacheGroups: {
         commons: {
           test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-          name: "vendor",
-          chunks: "all",
+          name: 'vendor',
+          chunks: 'all',
         },
       },
     },
   },
   performance: {
-    hints: "warning",
+    hints: 'warning',
     maxAssetSize: 20000000,
     maxEntrypointSize: 8500000,
     assetFilter: (assetFilename) => {
-      return assetFilename.endsWith(".css") || assetFilename.endsWith(".js");
+      return assetFilename.endsWith('.css') || assetFilename.endsWith('.js')
     },
   },
   plugins: [
+    factoryPlugins.Progress(),        
+    factoryPlugins.Define(),       
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({
-      filename: Path.join(paths.cssFolder, namePattern + ".css"),
-      chunkFilename: "[id].css",
+      filename: Path.join(paths.cssFolder, namePattern + '.css'),
+      chunkFilename: '[id].css',
     }),
     new OptimizeCssAssetsPlugin(),
     new CopyWebpackPlugin([
@@ -58,5 +60,6 @@ export default Merge(Common(optionsCommon), {
         ignore: [paths.templatePath],
       },
     ]),
+    factoryPlugins.Manifest(),
   ],
-});
+})

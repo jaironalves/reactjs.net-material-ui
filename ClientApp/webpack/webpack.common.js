@@ -1,11 +1,9 @@
 import Webpack from 'webpack'
-import HtmlWebpackPlugin from 'html-webpack-plugin'
 import ManifestPlugin from 'webpack-manifest-plugin'
-import InterpolateHtmlPlugin from 'interpolate-html-plugin'
 import Merge from 'webpack-merge'
 import paths from './paths'
 
-const GenerateProcessEnv = mode => {
+const GenerateProcessEnv = (mode) => {
   let path = '.env'
   if (mode !== 'production') path = `.env.${mode}`
 
@@ -17,24 +15,6 @@ const GenerateProcessEnv = mode => {
     API_BASE_URL: JSON.stringify(process.env.API_BASE_URL),
   }
 }
-
-const HtmlWebpackPluginAdditionalOptions = mode =>
-  mode !== 'development'
-    ? {
-        minify: {
-          removeComments: true,
-          collapseWhitespace: true,
-          removeRedundantAttributes: true,
-          useShortDoctype: true,
-          removeEmptyAttributes: true,
-          removeStyleLinkTypeAttributes: true,
-          keepClosingSlash: true,
-          minifyJS: true,
-          minifyCSS: true,
-          minifyURLs: true,
-        },
-      }
-    : undefined
 
 const eslintLoader = {
   loader: 'eslint-loader',
@@ -60,12 +40,41 @@ const fileLoader = ({ namePattern }) => ({
   },
 })
 
-export default options =>
+export const factoryPlugins = {
+  Progress: () => new Webpack.ProgressPlugin(),
+  Define: (mode) =>
+    new Webpack.DefinePlugin({
+      'process.env': GenerateProcessEnv(mode),
+    }),  
+  Manifest: () =>
+    new ManifestPlugin({
+      fileName: 'asset-manifest.json',
+      publicPath: '/',
+      generate: (seed, files) => {
+        const manifestFiles = files.reduce((manifest, file) => {
+          manifest[file.name] = file.path
+          return manifest
+        }, seed)
+
+        const entrypointFiles = files
+          .filter((x) => x.isInitial && !x.name.endsWith('.map'))
+          .map((x) => x.path)
+
+        return {
+          files: manifestFiles,
+          entrypoints: entrypointFiles,
+        }
+      },
+    }),
+}
+
+export default (options) =>
   Merge({
     mode: options.mode,
-    entry: paths.entryPath,
+    entry: paths.entryPath(options.mode),
     output: {
       filename: `${paths.jsFolder}/${options.namePattern}.js`,
+      globalObject: 'this',
       path: paths.outputPath,
       chunkFilename: `${paths.jsFolder}/${options.namePattern}.[chunkhash].js`,
       publicPath: '/',
@@ -99,12 +108,7 @@ export default options =>
             },
             {
               test: /\.(sa|sc)ss$/,
-              use: [
-                options.styleLoaderInitial,
-                'css-loader',
-                'postcss-loader',
-                'sass-loader',
-              ],
+              use: [options.styleLoaderInitial, 'css-loader', 'postcss-loader', 'sass-loader'],
             },
             {
               exclude: [/\.js$/, /\.html$/, /\.json$/],
@@ -113,39 +117,5 @@ export default options =>
           ],
         },
       ],
-    },
-    plugins: [
-      new Webpack.ProgressPlugin(),
-      new HtmlWebpackPlugin(
-        Object.assign(
-          {},
-          {
-            template: paths.templatePath,
-          },
-          HtmlWebpackPluginAdditionalOptions(options.mode)
-        )
-      ),
-      new Webpack.DefinePlugin({
-        'process.env': GenerateProcessEnv(options.mode),
-      }),
-      new InterpolateHtmlPlugin({
-        PUBLIC_URL: '',
-      }),
-      new ManifestPlugin({
-        fileName: 'asset-manifest.json',
-        generate: (seed, files) => {
-          const manifestFiles = files.reduce((manifest, file) => {
-            manifest[file.name] = file.path;
-            return manifest;
-          }, seed);
-  
-          const entrypointFiles = files.filter(x => x.isInitial && !x.name.endsWith('.map')).map(x => x.path);
-  
-          return {
-            files: manifestFiles,
-            entrypoints: entrypointFiles,
-          };
-        },
-      }),
-    ],
+    },    
   })
